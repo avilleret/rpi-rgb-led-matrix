@@ -29,6 +29,7 @@ static int usage(const char *progname) {
           "\t-x <x-origin> : X-Origin of displaying text (Default: 0)\n"
           "\t-y <y-origin> : Y-Origin of displaying text (Default: 0)\n"
           "\t-C <r,g,b>    : Color. Default 255,255,0\n"
+          "\t-R <rotation> : Sets the rotation of matrix. Allowed: 0, 90, 180, 270. Default: 0.\n"
           "\t-S            : 'Scrambled' 32x16 display with 2 chains on each panel,\n");
 
   return 1;
@@ -47,9 +48,10 @@ int main(int argc, char *argv[]) {
   int x_orig = 0;
   int y_orig = -1;
   bool scrambled_display = false;
+  int rotation = 0;
 
   int opt;
-  while ((opt = getopt(argc, argv, "r:P:c:x:y:f:C:S")) != -1) {
+  while ((opt = getopt(argc, argv, "r:P:c:x:y:f:C:R:S")) != -1) {
     switch (opt) {
     case 'r': rows = atoi(optarg); break;
     case 'P': parallel = atoi(optarg); break;
@@ -62,6 +64,9 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Invalid color spec.\n");
         return usage(argv[0]);
       }
+      break;
+    case 'R':
+      rotation = atoi(optarg);
       break;
     case 'S':
       scrambled_display = true;
@@ -102,6 +107,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  if (rotation % 90 != 0) {
+    fprintf(stderr, "Rotation %d not allowed! Only 0, 90, 180 and 270 are possible.\n", rotation);
+    return 1;
+  }
+
   /*
    * Set up GPIO pins. This fails when not running as root.
    */
@@ -120,6 +130,10 @@ int main(int argc, char *argv[]) {
   if (scrambled_display) {
     // Mapping the coordinates of a scrambled 32x16 display with 2 chains per panel
     transformer->AddTransformer(new Scrambled32x16Transformer());
+  }
+
+  if (rotation > 0) {
+    transformer->AddTransformer(new RotateTransformer(rotation));
   }
 
   bool all_extreme_colors = true;
