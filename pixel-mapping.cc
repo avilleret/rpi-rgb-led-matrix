@@ -31,8 +31,11 @@ int main(int argc, char *argv[]) {
   int chain = 16;    // Number of boards chained together.
   int parallel = 1; // Number of chains in parallel (1..3). > 1 for plus or Pi2
   RGBMatrix *matrix = new RGBMatrix(&io, rows, chain, parallel);
-  Scrambled32x16Transformer *transformer = new Scrambled32x16Transformer();
+
+  LinkedTransformer *transformer = new LinkedTransformer();
   matrix->SetTransformer(transformer);
+  // Mapping the coordinates of a scrambled 32x16 display with 2 chains per panel
+  transformer->AddTransformer(new Scrambled32x16Transformer());
 
   printf("matrix dimen :  %d x %d\n", matrix->width(), matrix->height() );
   for (int j=0; j<matrix->height(); j++){

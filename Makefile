@@ -1,6 +1,6 @@
 CXXFLAGS=-Wall -O3 -g
 OBJECTS=demo-main.o minimal-example.o pixel-mapping.o text-example.o led-image-viewer.o
-BINARIES=led-matrix minimal-example pixel-mapping text-example
+BINARIES=led-matrix minimal-example pixel-mapping text-example vertical-text
 ALL_BINARIES=$(BINARIES) led-image-viewer
 
 # Where our library resides. It is split between includes and the binary
@@ -34,6 +34,9 @@ minimal-example : minimal-example.o $(RGB_LIBRARY)
 text-example : text-example.o $(RGB_LIBRARY)
 	$(CXX) $(CXXFLAGS) text-example.o -o $@ $(LDFLAGS)
 
+vertical-text: vertical-text.o $(RGB_LIBRARY)
+	$(CXX) $(CXXFLAGS) vertical-text.o -o $@ $(LDFLAGS) $(MAGICK_LDFLAGS)
+
 led-image-viewer: led-image-viewer.o $(RGB_LIBRARY)
 	$(CXX) $(CXXFLAGS) led-image-viewer.o -o $@ $(LDFLAGS) $(MAGICK_LDFLAGS)
 
@@ -41,6 +44,9 @@ led-image-viewer: led-image-viewer.o $(RGB_LIBRARY)
 	$(CXX) -I$(RGB_INCDIR) $(CXXFLAGS) -c -o $@ $<
 
 led-image-viewer.o : led-image-viewer.cc
+	$(CXX) -I$(RGB_INCDIR) $(CXXFLAGS) $(MAGICK_CXXFLAGS) -c -o $@ $<
+
+vertical-text.o : vertical-text.cc
 	$(CXX) -I$(RGB_INCDIR) $(CXXFLAGS) $(MAGICK_CXXFLAGS) -c -o $@ $<
 
 clean:
