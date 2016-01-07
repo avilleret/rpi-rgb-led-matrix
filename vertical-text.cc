@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <ctime>
 #include <fstream>
 #include <sstream>
 #include "Magick++.h"
@@ -46,7 +47,8 @@ static bool parseColor(Color *c, const char *str) {
 
 Color color(255, 255, 255);
 int speed = 100;
-std::string text;
+std::string text, textOpen, textClosed;
+int horo[7][3];
 
 void readConfigFile(){
   std::ifstream infile("text.txt"); // contain line by line : text, color and speed
@@ -59,21 +61,36 @@ void readConfigFile(){
       i++;
       switch (i) {
         case 1:
-          text = sline;
+          textOpen = sline;
           break;
         case 2:
-          int r,g,b;
-          if (!(iss >> r >> g >> b)) { break; } // error
-          color.r = r; color.g = g; color.b = b;
+          textClosed = sline;
           break;
         case 3:
           if (!(iss >> speed)) { break; }
           break;
+        default:
+          int h1,m1,h2,m2;
+          if (!(iss >> h1  >> m1 >> h2 >> m2)) { break; } // error
+          if(h1<h2){
+            horo[i-4][0] = h1*100 + m1;
+            horo[i-4][1] = h2*100 + m2;
+            horo[i-4][2] = 1;
+          } else {
+            horo[i-4][1] = h1*100 + m1;
+            horo[i-4][0] = h2*100 + m2;
+            horo[i-4][2] = 0;
+          }
+          break;
       }
   }
-  printf("text to display : '%s'\n", text.c_str());
-  printf("color : %d,%d,%d\n", color.r, color.g, color.b);
+  printf("text to display when opened : '%s'\n", textOpen.c_str());
+  printf("text to display when closed : '%s'\n", textClosed.c_str());
   printf("speed : %d\n", speed);
+  printf("horaires :\n");
+  for (int i=0; i<7; i++){
+    printf("jour %d : %d to %d\n",i,horo[i][0], horo[i][1]);
+  }
   return;
 }
 
@@ -87,7 +104,11 @@ int main(int argc, char *argv[]) {
   int y_orig = 0;
   bool scrambled_display = true;
   int rotation = 0;
-
+  
+  for (int i=0; i<7; i++){
+    horo[i][0]=0;
+    horo[i][1]=0;
+  }
   Magick::InitializeMagick(NULL);
 
   int opt;
@@ -197,6 +218,27 @@ int main(int argc, char *argv[]) {
      * Read file to get text, color and speed
      */
     readConfigFile();
+
+    time_t rawtime;
+    tm * timeinfo;
+    time(&rawtime);
+    timeinfo=localtime(&rawtime);
+    int day = (timeinfo->tm_wday+6)%7;
+    printf("today is %d, we are %s from %d to %d\n", day, horo[day][2] ? "open" : "closed" , horo[day][0], horo[day][1]);
+    int currTime = timeinfo->tm_hour*100 + timeinfo->tm_min;
+    printf("it's %02d:%02d \t%d\n", timeinfo->tm_hour, timeinfo->tm_min, currTime);
+    bool state = false;
+    if ( currTime > horo[day][0] && currTime < horo[day][1] ){
+      state = (bool) horo[day][2]; 
+    } else {
+      state = !(bool) horo[day][2];
+    }
+
+    printf("now we are %s\n", state ? "open" : "close") ;
+    if (state) text = textOpen;
+    else text = textClosed;
+
+    printf("display  : '%s'\n", text.c_str());
 
     // Optimize CPU usage when using full color by disabling PWM
     bool all_extreme_colors = true;
