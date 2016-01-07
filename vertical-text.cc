@@ -22,7 +22,7 @@ using namespace std;
 
 static int usage(const char *progname) {
   fprintf(stderr, "usage: %s [options]\n", progname);
-  fprintf(stderr, "Reads text from stdin and displays it. "
+  fprintf(stderr, "Reads text, speed and color from file and displays it. "
           "Empty string: clear screen\n");
   fprintf(stderr, "Options:\n"
           "\t-f <font-file>: Use given font.\n"
@@ -44,7 +44,7 @@ static bool parseColor(Color *c, const char *str) {
   return sscanf(str, "%hhu,%hhu,%hhu", &c->r, &c->g, &c->b) == 3;
 }
 
-Color color(255, 255, 0);
+Color color(255, 255, 255);
 int speed = 100;
 std::string text;
 
@@ -184,36 +184,41 @@ int main(int argc, char *argv[]) {
     transformer->AddTransformer(new Scrambled32x16Transformer());
   }
 
-/*
- * Optimize CPU usage when using full color by disabling PWM
-  bool all_extreme_colors = true;
-  all_extreme_colors &= color.r == 0 || color.r == 255;
-  all_extreme_colors &= color.g == 0 || color.g == 255;
-  all_extreme_colors &= color.b == 0 || color.b == 255;
-  if (all_extreme_colors)
-    canvas->SetPWMBits(1);
-*/
+  canvas->SetBrightness(100);
+  canvas->set_luminance_correct(false);
 
+  static int fontWidth = 11;
+  static int fontHeight = 15;
+  
+  Magick::Image fontImage;
+  fontImage.read(bmp_font_file);
   while(1){
     /*
      * Read file to get text, color and speed
      */
     readConfigFile();
-    //printf("text : %s\n", text.c_str());
 
+    // Optimize CPU usage when using full color by disabling PWM
+    bool all_extreme_colors = true;
+    all_extreme_colors &= color.r == 0 || color.r == 255;
+    all_extreme_colors &= color.g == 0 || color.g == 255;
+    all_extreme_colors &= color.b == 0 || color.b == 255;
+    if (all_extreme_colors)
+      canvas->SetPWMBits(1);
 
-    int fontWidth = 11;
-    int fontHeight = 15;
-
-    int bufHeight(text.length()*fontHeight);
-    int bufWidth(fontWidth);
-    Magick::Image fontImage;
+    static int bufHeight(text.length()*fontHeight);
+    static int bufWidth(fontWidth);
     bool **bufImage;
     bufImage = new bool*[bufWidth];
-    for ( int i=0; i<fontWidth; i++){
+    for ( int i=0; i<bufWidth; i++){
       bufImage[i] = new bool[bufHeight];
     }
-    fontImage.read(bmp_font_file);
+   
+    for ( int i=0; i<bufWidth; i++){
+      for ( int j=0; j<bufHeight; j++){
+        bufImage[i][j] = false;
+      }
+    }
 
     for (uint i = 0; i<text.length(); i++){ // iterate char
       //printf("draw : %d %c\n",text[i],text[i]);
@@ -222,33 +227,38 @@ int main(int argc, char *argv[]) {
         int idx = k+fontWidth*(text[i]-32);
         if ( idx < 0 || idx > 990 ) continue;
 
-        int dstId = i*fontHeight ;
-
         for (int j=0; j<fontHeight-1; j++){ // iterate rows
           const Magick::Color &c = fontImage.pixelColor(idx,j);
           bufImage[k][j+i*fontHeight] = c.redQuantum() > 0;
-          //printf("%d\t",bufImage[k][j+i*fontHeight]);
+          // printf("%d\t",bufImage[k][j+i*fontHeight]);
         }
-        //printf("\n");
+       // printf("\n");
       }
     }
 
-    //printf("reso : %dx%d\n", canvas->width(), canvas->height());
-    //printf("color : %d,%d,%d\n", color.r, color.g,color.b);
+    // printf("reso : %dx%d\n", canvas->width(), canvas->height());
+    // printf("color : %d,%d,%d\n", color.r, color.g,color.b);
     for ( int n=-canvas->width(); n<bufHeight; n++){
       canvas->Clear();
       for (int j=0; j< min(canvas->width(),bufHeight); j++){
-        for (int i=0; i<min(canvas->height(),bufWidth); i++){
+        for (int i=0; i<min(canvas->height()/parallel,bufWidth); i++){
           if (j+n < bufHeight && j+n >= 0){
-            canvas->SetPixel(j,canvas->height()-i-4,
+            for (int p=1; p<=parallel; p++){
+            canvas->SetPixel(j,canvas->height()/parallel*p-i-4,
                             static_cast<int>( bufImage[i][j+n] ) * color.r,
                             static_cast<int>( bufImage[i][j+n] ) * color.g,
                             static_cast<int>( bufImage[i][j+n] ) * color.b);
+            }
           }
         }
       }
       usleep(static_cast<useconds_t>(1000000/speed));
     }
+
+   for (int i=0; i<bufWidth; i++){
+     if(bufImage[i]) delete[] bufImage[i];
+   }
+   delete[] bufImage;
   }
 
   // Finished. Shut down the RGB matrix.
