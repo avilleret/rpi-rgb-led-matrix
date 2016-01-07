@@ -281,7 +281,6 @@ int main(int argc, char *argv[]) {
     // printf("reso : %dx%d\n", canvas->width(), canvas->height());
     // printf("color : %d,%d,%d\n", color.r, color.g,color.b);
     for ( int n=-canvas->width(); n<bufHeight; n++){
-      canvas->Clear();
       for (int j=0; j< min(canvas->width(),bufHeight); j++){
         for (int i=0; i<min(canvas->height()/parallel,bufWidth); i++){
           if (j+n < bufHeight && j+n >= 0){
