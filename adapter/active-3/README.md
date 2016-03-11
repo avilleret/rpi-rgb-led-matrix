@@ -6,7 +6,7 @@ Adapter PCB to support up to 3 panels
    * Uses HCT245 to level shift signals from 3.3V to 5V and shield
      the Raspberry Pi GPIOs from overloading.
    * Open source KiCAD PCB EDA format.
-   * Optional: Pads to power the Pi with 5V, including optional capacitor footprints.
+   * Optional: Pads to power the Pi with 5V, including optional capacitor footprints (use something like 22uF-100uF; might be useful to smooth noisy power supply in particular if you operate the panels from the same supply. I use a 22uF/6.3V ceramic capacitor).
    * Connector for RxD input (literally the only GPIO pin left) in case you want to
      make your panel controlled with a serial interface (3.3V logic level).
    * (not very pretty layout, was just lazy and let the auto-router generate the first pass)
@@ -17,6 +17,7 @@ Adapter PCB to support up to 3 panels
      - 1x 10kOhm resistor (0805 package)
      - 3x 16pin IDC (=2x8) male receptible to connect the panels.
      - 1x 40pin female connector to connect to the RPi.
+     - 1x (optional) 22uF .. 100uF capacitor for 5V rail.
    * The Gerber FAB files are provided as [active3-rpi-hub75-adapter-fab.zip](./active3-rpi-hub75-adapter-fab.zip)
 
 The board is also [shared on OSH Park][osh-active3] (not affiliated).
