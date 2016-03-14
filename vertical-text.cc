@@ -254,8 +254,8 @@ int main(int argc, char *argv[]) {
       canvas->SetPWMBits(1);
 
     // create array of bool array, this is our image containing the whole text
-    static int bufHeight(text.length()*fontHeight);
-    static int bufWidth(fontWidth);
+    int bufHeight(text.length()*fontHeight);
+    int bufWidth(fontWidth);
     bool **bufImage;
     bufImage = new bool*[bufWidth];
     for ( int i=0; i<bufWidth; i++){
