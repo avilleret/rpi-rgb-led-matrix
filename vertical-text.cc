@@ -52,7 +52,7 @@ std::string text, textOpen, textClosed;
 int horo[7][3];
 
 void readConfigFile(){
-  std::ifstream infile("text.txt"); // contain line by line : text, color and speed
+  std::ifstream infile("/home/borne/rpi-rgb-led-matrix/text.txt"); // contain line by line : text, color and speed
   std::string sline;
   int i = 0;
 
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (bmp_font_file == NULL) {
-    bmp_font_file = "fonts/10x20_BDCASH.bmp";
+    bmp_font_file = "/home/borne/rpi-rgb-led-matrix/fonts/10x20_BDCASH.bmp";
   }
 
 
