@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
   int x_orig = 0;
   int y_orig = 0;
   bool scrambled_display = true;
-  bool loop = true;
+  bool loop = false;
   int rotation = 0;
 
   for (int i=0; i<7; i++){
