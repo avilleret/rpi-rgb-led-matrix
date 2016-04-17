@@ -16,7 +16,7 @@
 #include <ctime>
 #include <fstream>
 #include <sstream>
-#include "Magick++.h"
+#include <Magick++.h>
 
 using namespace rgb_matrix;
 using namespace std;

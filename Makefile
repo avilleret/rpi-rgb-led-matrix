@@ -14,8 +14,8 @@ LDFLAGS+=-L$(RGB_LIBDIR) -l$(RGB_LIBRARY_NAME) -lrt -lm -lpthread
 PYTHON_LIB_DIR=python
 
 # Imagemagic flags, only needed if actually compiled.
-MAGICK_CXXFLAGS=`GraphicsMagick++-config --cppflags --cxxflags`
-MAGICK_LDFLAGS=`GraphicsMagick++-config --ldflags --libs`
+MAGICK_CXXFLAGS=`Magick++-config --cppflags --cxxflags`
+MAGICK_LDFLAGS=`Magick++-config --ldflags --libs`
 
 all : $(BINARIES)
 
