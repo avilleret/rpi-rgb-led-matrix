@@ -16,7 +16,7 @@
 #include <ctime>
 #include <fstream>
 #include <sstream>
-#include <Magick++.h>
+#include "Magick++.h"
 
 using namespace rgb_matrix;
 using namespace std;
@@ -59,13 +59,22 @@ void readConfigFile(){
   while (std::getline(infile, sline))
   {
       std::istringstream iss(sline);
+      std::stringstream ss;
       i++;
       switch (i) {
         case 1:
-          textOpen = sline;
+          ss<<sline;
+	        while (ss.str().size() < 17){
+		        ss << " ";
+          }
+          textOpen = ss.str();
           break;
         case 2:
-          textClosed = sline;
+          ss<<sline;
+          while (ss.str().size() < 17){
+            ss << " ";
+          }
+          textClosed = ss.str();
           break;
         case 3:
           if (!(iss >> speed)) { break; }
@@ -287,7 +296,7 @@ int main(int argc, char *argv[]) {
       for (int j=0; j<min(canvas->width(),bufHeight); j++){
         for (int i=0; i<min(canvas->height()/parallel,bufWidth); i++){
           if ( loop ){
-            int k = (j+n+(canvas->width()/bufHeight+1)*bufHeight) % bufHeight;
+            int k = (j+n) % bufHeight;
             for (int p=1; p<=parallel; p++){
                 canvas->SetPixel(j,canvas->height()/parallel*p-i-4,
                             static_cast<int>( bufImage[i][k] ) * color.r,
